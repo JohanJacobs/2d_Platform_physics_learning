@@ -44,8 +44,8 @@ class Player:
         self.can_jump = True
         self.jump_calc_end = 90
         self.jump_calc_count = 0.0
-        self.jump_calc_count_inc = 0.2
-        self.jump_force = -45
+        self.jump_calc_count_inc = 0.25
+        self.jump_force = -30
 
         self.boost = False
         self.boost_check_counter = 0
