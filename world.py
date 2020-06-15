@@ -49,3 +49,6 @@ class World:
 
     def reset_player(self):
         self.player.set_position(250, 550)
+
+    def get_new_brick_id(self):
+        return len(self.bricks)

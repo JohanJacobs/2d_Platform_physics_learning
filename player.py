@@ -44,7 +44,7 @@ class Player:
         self.can_jump = True
         self.jump_calc_end = 90
         self.jump_calc_count = 0.0
-        self.jump_calc_count_inc = 0.25
+        self.jump_calc_count_inc = 0.2
         self.jump_force = -30
 
         self.boost = False
@@ -149,6 +149,7 @@ class Player:
         # TODO: What if we jump so much in 1 time frame that we end up jumping thru the block
 
         self.on_floor = False
+
         for b in bricks:
             # test for the right hand side
             if b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.mid_right][0],
@@ -156,46 +157,32 @@ class Player:
                 if 0 < b.angle < 90:  # slanted brick on the right
                     self.handle_slope(b, desired_position, new_velocity)
                 else:
-                    desired_position.x = b.get_pygame_rect()[0] - self.half_width - 1
-                    if new_velocity.x > 0:
-                        new_velocity.x = 0
+                    self.handle_wall(b, desired_position, new_velocity)
+
             elif b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.mid_left][0],
                                         desired_position.y + self.hotspot_offsets[Hotspots.mid_left][1])):
                 # brick below on left side
                 if 0 < b.angle < 90:  # slanted brick on the left
                     self.handle_slope(b, desired_position, new_velocity)
                 else:
-                    desired_position.x = b.get_pygame_rect()[0] + b.get_pygame_rect()[2] + self.half_width + 1
-                    if new_velocity.x < 0:
-                        new_velocity.x = 0
-            elif (b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.bottom_mid][0],
-                                         desired_position.y + self.hotspot_offsets[Hotspots.bottom_mid][1])) or
-                  b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.bottom_left][0],
-                                         desired_position.y + self.hotspot_offsets[Hotspots.bottom_left][1])) or
-                  b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.bottom_right][0],
-                                         desired_position.y + self.hotspot_offsets[Hotspots.bottom_right][1]))) and \
-                    not self.is_jumping:  # brick below us
-                if 0 < b.angle < 90:
-                    self.handle_slope(b, desired_position, new_velocity)
+                    self.handle_wall(b, desired_position, new_velocity)
 
+            elif b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.bottom_mid][0],
+                                         desired_position.y + self.hotspot_offsets[Hotspots.bottom_mid][1])) and \
+                    not self.is_jumping:  # brick below us
+                if 0 < b.angle < 90: # what about other angles?
+                    self.handle_slope(b, desired_position, new_velocity)
                 else:
-                    self.on_slope = False
-                    self.on_floor = True
-                    desired_position.y = b.get_pygame_rect()[1] - self.half_height - 1  # y postiion
-                    new_velocity.y = 0
+                    self.handle_floor(b, desired_position, new_velocity)
+
             elif (b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.top_left][0],
                                          desired_position.y + self.hotspot_offsets[Hotspots.top_left][1])) and
                   b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.top_mid][0],
                                          desired_position.y + self.hotspot_offsets[Hotspots.top_mid][1])) and
                   b.brick_point_collide((desired_position.x + self.hotspot_offsets[Hotspots.top_right][0],
                                          desired_position.y + self.hotspot_offsets[Hotspots.top_right][
-                                             1]))):  # brick above us
-                desired_position.y = b.get_pygame_rect()[1] + b.height + (self.half_height + 2)
-                new_velocity.y = 0
-                self.on_slope = False
-                self.is_jumping = False
-                self.can_jump = False
-                self.on_floor = False
+                                             1]))):
+                self.handle_roof(b, desired_position, new_velocity) # brick above us
 
         if self.on_floor:
             self.can_jump = True
@@ -204,6 +191,29 @@ class Player:
         self.velocity = new_velocity
         self.accel.x = 0
         self.accel.y = 0
+
+    def handle_roof(self, b, desired_position, new_velocity):
+        desired_position.y = b.get_pygame_rect()[1] + b.height + (self.half_height + 2)
+        new_velocity.y = 0
+        self.on_slope = False
+        self.is_jumping = False
+        self.on_floor = False
+
+    def handle_floor(self, b, desired_position, new_velocity):
+        desired_position.y = b.get_pygame_rect()[1] - 1 - self.half_height
+        if new_velocity.y > 0:
+            new_velocity.y = 0
+        self.on_floor = True
+        self.move_angle = 0
+
+    def handle_wall(self, b, desired_position, new_velocity):
+        if self.position.x <= b.get_pygame_rect()[0]:  # we approach wall from left
+            desired_position.x = b.get_pygame_rect()[0] - self.half_width - 2
+        else:  # from right
+            desired_position.x = b.get_pygame_rect()[0] + b.get_pygame_rect()[2] + self.half_width + 2
+        new_velocity.x = 0
+        self.on_floor = False
+        self.can_jump = False
 
     def handle_slope(self, b, desired_pos, new_velocity):
         # X-plan position in the brick
@@ -214,24 +224,27 @@ class Player:
         bw = b.get_pygame_rect()[2]
         bh = b.get_pygame_rect()[3]
 
-        if bx <= px <= (bx + bw):
+        if bx <= px <= (bx + bw + self.half_width):
             if by <= py <= (by + bh):  # we definately are in the brick
                 xdiff = px - bx  # how far are we into the brick
                 ypos = math.tan(math.radians(b.angle)) * xdiff  # y location in the  brick
-                new_y = by + (bh - ypos) - self.height
+                new_y = by + (bh - ypos)
                 self.on_floor = False
                 if desired_pos.y > new_y:  # we are inside the slop so lets adjust
                     desired_pos.y = new_y
+                    # desired_position.y = b.get_pygame_rect()[1] - 1 - self.half_height
                     new_velocity = new_velocity.rotate(b.angle)
                     new_velocity.y = 0
+                    if not self.move_left and not self.move_right:
+                        new_velocity.x = 0
                     self.on_floor = True
-                    self.can_jump = True
                     self.move_angle = b.angle
                     if self.boost:
                         self.can_climb_wall = True
                     else:
                         self.can_climb_wall = False
-
+                else:
+                    pass # adjust here also ?
             else:
                 print("err:: handle_slope 1")
         else:
