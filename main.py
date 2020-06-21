@@ -23,6 +23,7 @@ def main():
     w.add_brick(w.get_new_brick_id(), (201, 790), (400, 800), 0)
     w.add_brick(w.get_new_brick_id(), (401, 790), (600, 800), 0)
     w.add_brick(w.get_new_brick_id(), (601, 790), (800, 800), 0)
+
     # wall brick
     w.add_brick(w.get_new_brick_id(), (0, 0), (10, 800), 90)  # left wall
     w.add_brick(w.get_new_brick_id(), (790, 0), (800, 800), 90)  # right wall
@@ -32,19 +33,12 @@ def main():
     w.add_brick(w.get_new_brick_id(), (0, 500), (100, 510), 0)
     w.add_brick(w.get_new_brick_id(), (200, 600), (300, 610), 0)
     w.add_brick(w.get_new_brick_id(), (300, 600), (450, 610), 0)
+    w.add_brick(w.get_new_brick_id(), (450, 600), (500, 610), 0)
 
     # slanted bricks
     w.add_brick(w.get_new_brick_id(), (700, 700), (800, 800), 45)
-    w.add_brick(w.get_new_brick_id(), (440, 560), (490, 610), 45)
-
-
-
-    #w.add_brick(3, (200, 600), (300, 610), 0)
-    #w.add_brick(4, (350, 600), (450, 610), 0)
-    #w.add_brick(5, (500, 350), (600, 700), 0)
-    #w.add_brick(6, (0, 0), (10, 800), 90)  # wall on left
-    #w.add_brick(7, (790, 0), (800, 800), 90)  # wall on right
-    #w.add_brick_slanted(8, (700, 700), (790, 790), 45)  # slanted block
+    w.add_brick(w.get_new_brick_id(), (450, 550), (500, 600), 45)
+    w.add_brick(w.get_new_brick_id(), (100, 700), (200, 800), 135)
 
     while running:
         for event in pygame.event.get():

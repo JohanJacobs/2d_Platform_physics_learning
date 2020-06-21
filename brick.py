@@ -25,7 +25,10 @@ class Brick:
         if self.angle % 90 == 0:
             pygame.draw.rect(screen, color, self.get_pygame_rect(), 0)
         elif self.angle != 0:
-            pygame.draw.line(screen, color, (self.p1.x, self.p2.y), (self.p2.x, self.p1.y), 5)
+            if self.angle == 45:
+                pygame.draw.line(screen, color, (self.p1.x, self.p2.y), (self.p2.x, self.p1.y), 1)
+            elif self.angle == 135:
+                pygame.draw.line(screen, color, (self.p1.x, self.p1.y), (self.p2.x, self.p2.y), 1)
 
     def get_pygame_rect(self):
         return (int(self.p1.x), int(self.p1.y), int(self.width), int(self.height))
@@ -36,10 +39,6 @@ class Brick:
                 self.p1.y <= p[1] <= self.p2.y:
             self.collided = True
         return self.collided
-        #if self.p1.x <= p[0] <= self.p2.x and \
-        #        self.p1.y <= p[1] <= self.p2.y:
-        #    return True
-        #return False
 
     def brick_rect_collide(self, p1, p2):
         self.collided = True
