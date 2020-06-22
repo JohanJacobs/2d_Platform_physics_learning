@@ -129,11 +129,13 @@ class Player:
 
             self.jump_calc_count += self.jump_calc_count_inc
             force = self.jump_force * math.cos(math.radians(self.jump_calc_count))
-            self.apply_force_xy(0, force)
+            #self.apply_force(pygame.Vector2(0, force))
+            self.apply_angled_force(force, 90)
+
             if self.jump_calc_count >= self.jump_calc_end:
                 self.is_jumping = False
 
-        # if the states for movement is active , apply the force
+        # if the states for movement is active , apply the forces
         if self.move_left:
             self.apply_angled_force(self.movement_force, 180)
         if self.move_right:
@@ -164,7 +166,7 @@ class Player:
         desired_position = self.position + (self.velocity * delta_time) # new position
 
         # check if we collide with a block
-        # TODO: What if we jump so much in 1 time frame that we end up jumping thru the block
+        # TODO: What if we jump so much in 1 time frame that we end up jumping thru the block?
 
         self.on_floor = False
         bottom_mid = (desired_position.x + self.hotspot_offsets[Hotspots.bottom_mid][0], desired_position.y + self.hotspot_offsets[Hotspots.bottom_mid][1])
@@ -210,6 +212,11 @@ class Player:
         self.on_floor = False
 
     def handle_floor(self, b, desired_position, new_velocity):
+        # handle_floor: Cap the Y location to the floor and remove all y-Axis velocity if it is positive to avoid moving further into the brick
+        # inputs:
+        # b: is a brick data structure to extract the "clamp" too y location
+        # desired_position: the tested sensor location to be modified
+        # new_velocity: velocity vector to be modified
         desired_position.y = b.get_pygame_rect()[1] - 1 - self.half_height
         if new_velocity.y > 0:
             new_velocity.y = 0
@@ -217,6 +224,11 @@ class Player:
         self.move_angle = 0
 
     def handle_wall(self, b, desired_position, new_velocity):
+        # handle_wall: cap the x location against the wall and remove velocity in the x direction
+        # inputs:
+        #   b: the brick structure which is the wall that was collided with
+        #   desired_position: the sensor location that needs to be modified.
+        #   new_velocity: the velocity vector data  that needs to be modified
         if self.position.x <= b.get_pygame_rect()[0]:  # we approach wall from left
             desired_position.x = b.get_pygame_rect()[0] - self.half_width - 2
         else:  # from right
@@ -261,19 +273,15 @@ class Player:
             v.y = -self.max_vertical_velocity
 
     def apply_force(self, f):
+        # applies a force to the acceleration vector . using F=ma thus a = F*(1/m)
         self.accel += (f * self.inverse_mass)
 
     def apply_angled_force(self, force, angle):
+        # applies a force at an angle to the acceleration vector . using F=ma thus a = F*(1/m)
         tmp = pygame.Vector2()
         tmp.x = round(math.cos(math.radians(angle)) * force, 4)
         tmp.y = round(math.sin(math.radians(angle)) * force, 4)
         self.apply_force(tmp)
-
-    def apply_force_xy(self, x, y):
-        new_force = pygame.Vector2()
-        new_force.x = x
-        new_force.y = y
-        self.apply_force(new_force)
 
     def apply_action(self, identifier, action):
         if identifier == "LEFT" and action == "DOWN":
