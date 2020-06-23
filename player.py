@@ -25,6 +25,7 @@ class Player:
         self.mu = 0.05  # drag / friction coef.
         self.mass = 50
         self.inverse_mass = 1 / self.mass
+        self.gravity = pygame.math.Vector2(0, 9.8)
 
         # player size (bounding box)
         self.width = 20
@@ -92,9 +93,9 @@ class Player:
         # Text for the player states and positions
         text = ""
         if self.can_jump:
-            text = "Can Jump: "
+            text = "Jump: Yes we can"
         else:
-            text = "No Jump: "
+            text = "Jump: No we cant"
         textSurface = font.render(text, True, (255, 255, 255), (0, 0, 0))
         screen.blit(textSurface, (50, 10))
 
@@ -113,14 +114,18 @@ class Player:
             text = "on Floor"
         else:
             text = "off floor"
-
         textSurface = font.render(text, True, (255, 255, 255), (0, 0, 0))
         screen.blit(textSurface, (50, 70))
 
-    def update_physics(self, t, delta_time, bricks):
-        # physics algorithm
+        # velocity vector text
+        text = "Velocity.x: {}".format(self.velocity.x)
+        textSurface = font.render(text, True, (255, 255, 255), (0, 0, 0))
+        screen.blit(textSurface, (50, 90))
+        text = "Velocity.y: {}".format(self.velocity.y)
+        textSurface = font.render(text, True, (255, 255, 255), (0, 0, 0))
+        screen.blit(textSurface, (50, 110))
 
-        gravity = pygame.Vector2()
+    def update_physics(self, t, delta_time, bricks):
         if self.is_jumping:
             # main jumping logic,
             # increase the jump counter, calculate for how much force to apply is based on the COS wave curve
@@ -143,7 +148,7 @@ class Player:
 
         # check if we should do gravity, gravity is only applied if we are "not" on the floor
         if not self.on_floor and not self.is_jumping:
-            self.apply_angled_force(-9.8, 270)
+            self.apply_force(self.gravity)
 
         # friction stuff, only works when velocity is higher than 0, thus , moving
         if self.velocity.magnitude() > 0 and not self.is_jumping:
@@ -154,33 +159,66 @@ class Player:
 
         # velocity is created based on teh various forces from applied_force functions including delta time
         new_velocity = self.velocity + (self.accel * delta_time)
-
         self.cap_velocity(new_velocity) # cap vertical
+        # to fix a weird issue where we have a small velocity but never move
+        new_velocity.x = round(new_velocity.x, 4)
+        new_velocity.y = round(new_velocity.y, 4)
 
         desired_position = self.position + (self.velocity * delta_time) # new position
-
+        desired_position.x= round(desired_position.x,2)
+        desired_position.y = round(desired_position.y, 2)
         # check if we collide with a block
         # TODO: What if we jump so much in 1 time frame that we end up jumping thru the block?
 
         self.on_floor = False
         bottom_mid = (desired_position.x + self.hotspot_offsets[Hotspots.bottom_mid][0], desired_position.y + self.hotspot_offsets[Hotspots.bottom_mid][1])
-        mid_right = (desired_position.x + self.hotspot_offsets[Hotspots.mid_right][0], desired_position.y + self.hotspot_offsets[Hotspots.mid_right][1])
-        mid_left = (desired_position.x + self.hotspot_offsets[Hotspots.mid_left][0], desired_position.y + self.hotspot_offsets[Hotspots.mid_left][1])
-        top_mid = (desired_position.x + self.hotspot_offsets[Hotspots.top_mid][0], desired_position.y + self.hotspot_offsets[Hotspots.top_mid][1])
+        bottom_right = (desired_position.x + self.hotspot_offsets[Hotspots.bottom_right][0],
+                      desired_position.y + self.hotspot_offsets[Hotspots.bottom_right][1])
+        bottom_left = (desired_position.x + self.hotspot_offsets[Hotspots.bottom_left][0],
+                      desired_position.y + self.hotspot_offsets[Hotspots.bottom_left][1])
+        mid_right = (desired_position.x + self.hotspot_offsets[Hotspots.mid_right][0],
+                     desired_position.y + self.hotspot_offsets[Hotspots.mid_right][1])
+        mid_left = (desired_position.x + self.hotspot_offsets[Hotspots.mid_left][0],
+                    desired_position.y + self.hotspot_offsets[Hotspots.mid_left][1])
+        top_mid = (desired_position.x + self.hotspot_offsets[Hotspots.top_mid][0],
+                   desired_position.y + self.hotspot_offsets[Hotspots.top_mid][1])
+        top_right = (desired_position.x + self.hotspot_offsets[Hotspots.top_right][0],
+                   desired_position.y + self.hotspot_offsets[Hotspots.top_right][1])
+        top_left = (desired_position.x + self.hotspot_offsets[Hotspots.top_left][0],
+                   desired_position.y + self.hotspot_offsets[Hotspots.top_left][1])
+
         for b in bricks:
-            if b.brick_point_collide(bottom_mid):  # hit a brick below us : floor (sensor)
-                if b.angle == 0:
-                    self.handle_floor(b, desired_position, new_velocity)
-                elif b.angle == 45 or b.angle == 135:
-                    self.handle_slope(b, desired_position, new_velocity)
+            b.clear_player_connected()
+            if b.brick_point_collide(bottom_left) or b.brick_point_collide(bottom_right): # our feet sensors hit something
+                b.player_connected = True
+                if b.brick_point_collide(top_left) or b.brick_point_collide(top_right): # this is a wall
+                    if b.angle == 135 or b.angle == 45:
+                        self.handle_slope(b, desired_position, new_velocity)
+                    else:
+                        self.handle_wall(b, desired_position, new_velocity)
+                else:
+                    if b.angle == 135 or b.angle == 45:
+                        self.handle_slope(b,desired_position,new_velocity)
+                    else:
+                        self.handle_floor(b,desired_position,new_velocity)
+            elif b.brick_point_collide(top_right) or b.brick_point_collide(top_left) or b.brick_point_collide(top_mid):
+                b.player_connected = True
+                self.handle_roof(b,desired_position,new_velocity)
 
-            # brick on the left or right of us (sensor based )
-            elif (b.brick_point_collide(mid_right) or b.brick_point_collide(mid_left)) and (b.angle % 90 == 0):
-                self.handle_wall(b, desired_position, new_velocity)
 
-            # bricks above us.
-            elif b.brick_point_collide(top_mid):
-                self.handle_roof(b, desired_position, new_velocity)  # roof above us
+
+
+            #if b.brick_point_collide(bottom_mid):  # hit a brick below us : floor (sensor)
+            #    if b.angle == 0:
+            #        self.handle_floor(b, desired_position, new_velocity)
+            #    elif b.angle == 45 or b.angle == 135:
+            #        self.handle_slope(b, desired_position, new_velocity)
+            ## brick on the left or right of us (sensor based )
+            #elif (b.brick_point_collide(mid_right) or b.brick_point_collide(mid_left)) and (b.angle % 90 == 0):
+            #    self.handle_wall(b, desired_position, new_velocity)
+            ## bricks above us.
+            #elif b.brick_point_collide(top_mid):
+            #    self.handle_roof(b, desired_position, new_velocity)  # roof above us
 
         # enable jumping if player is on asurface (floor)
         if self.on_floor:
@@ -201,7 +239,6 @@ class Player:
         # check if the position + top offset is inside the brick and move the player back outside
         desired_position.y = b.get_pygame_rect()[1] + b.height + (self.half_height + 2)
         new_velocity.y = 0
-        self.on_slope = False
         self.is_jumping = False
         self.on_floor = False
 
@@ -215,7 +252,6 @@ class Player:
         if new_velocity.y > 0:
             new_velocity.y = 0
         self.on_floor = True
-        self.move_angle = 0
 
     def handle_wall(self, b, desired_position, new_velocity):
         # handle_wall: cap the x location against the wall and remove velocity in the x direction
@@ -223,7 +259,7 @@ class Player:
         #   b: the brick structure which is the wall that was collided with
         #   desired_position: the sensor location that needs to be modified.
         #   new_velocity: the velocity vector data  that needs to be modified
-        if self.position.x <= b.get_pygame_rect()[0]:  # we approach wall from left
+        if new_velocity.x > 0:  # we approach wall from left
             desired_position.x = b.get_pygame_rect()[0] - self.half_width - 2
         else:  # from right
             desired_position.x = b.get_pygame_rect()[0] + b.get_pygame_rect()[2] + self.half_width + 2
@@ -252,9 +288,9 @@ class Player:
         angle = 45
         radians_angle = math.radians(angle)  # the angle
         y_offset = math.tan(radians_angle) * xdiff
-        ylimit = by + (bh - y_offset)  # our
+        ylimit = round(by + (bh - y_offset),0)  # our
 
-        if (py) >= ylimit:
+        if (py) > ylimit:
             self.on_floor = True
             desired_pos.y = ylimit - feetOffset
             self.move_angle = b.angle
@@ -275,6 +311,11 @@ class Player:
         if v.y < -self.max_vertical_velocity:
             v.y = -self.max_vertical_velocity
 
+        if abs(v.x) >0 and abs(v.x) < 0.001:
+            v.x = 0
+        if abs(v.y) >0 and abs(v.y) < 0.001:
+            v.y = 0
+
     def apply_force(self, f):
         # applies a force to the acceleration vector . using F=ma thus a = F*(1/m)
         self.accel += (f * self.inverse_mass)
@@ -292,19 +333,24 @@ class Player:
 
         if identifier == "LEFT" and action == "DOWN":
             self.move_left = True
+            return
         if identifier == "RIGHT" and action == "DOWN":
             self.move_right = True
-
+            return
         if identifier == "LEFT" and action == "UP":
             self.move_left = False
+            return
         if identifier == "RIGHT" and action == "UP":
             self.move_right = False
+            return
 
         if identifier == "SPACE" and action == "DOWN" and self.can_jump:
             self.is_jumping = True
             self.can_jump = False
             self.on_floor = False
             self.jump_calc_count = 0
+            return
 
         if identifier == "SPACE" and action == "UP":
             self.is_jumping = False
+            return

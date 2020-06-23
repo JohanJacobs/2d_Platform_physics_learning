@@ -10,6 +10,7 @@ class Brick:
         self.id = 0
         self.angle = 0
         self.collided = False
+        self.player_connected = False
 
     def set_brick(self, p1, p2):
         # creates the various data for the brick  from two (x,y) points for the brick (top left and bottom right
@@ -21,7 +22,7 @@ class Brick:
     def render(self, screen):
         # draw the brick, angled bricks are a line, all other bricks are just a filled rect.
         color = (110, 102, 93)
-        if self.collided:
+        if self.player_connected:
             color = (229, 156, 27)
 
         if self.angle % 90 == 0:
@@ -39,17 +40,19 @@ class Brick:
     def brick_point_collide(self, p):
         # test if a Vector2 point is within the brick area
         self.collided = False
-        if self.p1.x <= p[0] <= self.p2.x and \
-                self.p1.y <= p[1] <= self.p2.y:
+        if self.p1.x <= p[0] <= self.p2.x and self.p1.y <= p[1] <= self.p2.y:
             self.collided = True
         return self.collided
 
-    def brick_rect_collide(self, p1, p2):
-        # check if two points (representing a brick) collides with this rect
-        self.collided = True
-        if self.p1.x >= p2.x or p1.x >= self.p2.x:
-            self.collided = False
-        if self.p1.y >= p2.y or p1.y >= self.p2.y:
-            self.collided = False
-        return self.collided
-        # return True
+    def clear_player_connected(self):
+        self.player_connected = False
+
+    #def brick_rect_collide(self, p1, p2):
+    #    # check if two points (representing a brick) collides with this rect
+    #    self.collided = True
+    #    if self.p1.x >= p2.x or p1.x >= self.p2.x:
+    #        self.collided = False
+    #    if self.p1.y >= p2.y or p1.y >= self.p2.y:
+    #        self.collided = False
+    #    return self.collided
+    #    # return True

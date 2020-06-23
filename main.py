@@ -20,6 +20,9 @@ def main():
     w.add_brick(w.get_new_brick_id(), (201, 790), (400, 800), 0)
     w.add_brick(w.get_new_brick_id(), (401, 790), (600, 800), 0)
     w.add_brick(w.get_new_brick_id(), (601, 790), (800, 800), 0)
+    w.add_brick(w.get_new_brick_id(), (100, 400), (700, 410), 0)
+    w.add_brick(w.get_new_brick_id(), (400, 350), (800, 360), 0)
+
 
     # wall brick
     w.add_brick(w.get_new_brick_id(), (0, 0), (10, 800), 90)  # left wall
