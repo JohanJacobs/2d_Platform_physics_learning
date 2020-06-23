@@ -155,12 +155,6 @@ class Player:
         # velocity is created based on teh various forces from applied_force functions including delta time
         new_velocity = self.velocity + (self.accel * delta_time)
 
-        # capping velocity TODO: move to cap_Velocity function
-        if new_velocity.x > self.max_horizontal_velocity:
-            new_velocity.x = self.max_horizontal_velocity
-        elif new_velocity.x < -self.max_horizontal_velocity:
-            new_velocity.x = -self.max_horizontal_velocity
-
         self.cap_velocity(new_velocity) # cap vertical
 
         desired_position = self.position + (self.velocity * delta_time) # new position
@@ -270,6 +264,11 @@ class Player:
         # check that velocity is within the predefined parameters
         # inputs
         #   v : a vector2 representing the x/y velocity of the character.
+
+        if v.x > self.max_horizontal_velocity:
+            v.x = self.max_horizontal_velocity
+        elif v.x < -self.max_horizontal_velocity:
+            v.x = -self.max_horizontal_velocity
 
         if v.y > self.max_vertical_velocity:
             v.y = self.max_vertical_velocity
