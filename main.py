@@ -1,9 +1,6 @@
 
 # by no means perfect but learning to do physics in 2d platfomers
-#
-#
-#
-#
+
 import pygame
 import math
 
@@ -55,8 +52,6 @@ def main():
                     w.reset_player()
                 if event.key == pygame.K_y:
                     w.player.position.y = 0
-                if event.key == pygame.K_t:
-                    print("why")
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:

@@ -267,6 +267,10 @@ class Player:
             new_velocity.y = 0
 
     def cap_velocity(self, v):
+        # check that velocity is within the predefined parameters
+        # inputs
+        #   v : a vector2 representing the x/y velocity of the character.
+
         if v.y > self.max_vertical_velocity:
             v.y = self.max_vertical_velocity
         if v.y < -self.max_vertical_velocity:
@@ -284,6 +288,9 @@ class Player:
         self.apply_force(tmp)
 
     def apply_action(self, identifier, action):
+        # actions are pushed to the character through this function to keep it all in one place.
+        # ##Not sure if this is a good idea.
+
         if identifier == "LEFT" and action == "DOWN":
             self.move_left = True
         if identifier == "RIGHT" and action == "DOWN":
