@@ -189,6 +189,7 @@ class Player:
 
         for b in bricks:
             b.clear_player_connected()
+            # still not happy with this.
             if b.brick_point_collide(bottom_left) or b.brick_point_collide(bottom_right): # our feet sensors hit something
                 b.player_connected = True
                 if b.brick_point_collide(top_left) or b.brick_point_collide(top_right): # this is a wall
@@ -204,9 +205,6 @@ class Player:
             elif b.brick_point_collide(top_right) or b.brick_point_collide(top_left) or b.brick_point_collide(top_mid):
                 b.player_connected = True
                 self.handle_roof(b,desired_position,new_velocity)
-
-
-
 
             #if b.brick_point_collide(bottom_mid):  # hit a brick below us : floor (sensor)
             #    if b.angle == 0:
@@ -288,11 +286,11 @@ class Player:
         angle = 45
         radians_angle = math.radians(angle)  # the angle
         y_offset = math.tan(radians_angle) * xdiff
-        ylimit = round(by + (bh - y_offset),0)  # our
+        ylimit = round(by + (bh - y_offset), 0)
 
         if (py) > ylimit:
             self.on_floor = True
-            desired_pos.y = ylimit - feetOffset
+            desired_pos.y = ylimit - feetOffset + 1
             self.move_angle = b.angle
             new_velocity.y = 0
 
