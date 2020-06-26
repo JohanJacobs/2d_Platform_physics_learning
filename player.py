@@ -192,6 +192,11 @@ class Player:
         collisions[Hotspots.bottom_mid] = None
         collisions[Hotspots.bottom_right] = None
         collisions[Hotspots.top_mid] = None
+        collisions[Hotspots.top_right] = None
+        collisions[Hotspots.top_left] = None
+        collisions[Hotspots.mid_left] = None
+        collisions[Hotspots.mid_right] = None
+
 
         # prioritize floor and wall over slope,
         # prioritise wall over floor
@@ -200,60 +205,120 @@ class Player:
         for b in bricks:
             b.clear_player_connected()
             # determine where bricks are
-            if b.brick_point_collide(bottom_left):
-                if collisions[Hotspots.bottom_left] is None:  # its empty so lets store our brick
-                    collisions[Hotspots.bottom_left] = b
-                    b.player_connected = True
-                else:  # There is a brick if its angle and our brick is not angled, then that takes priority
-                    # check if this is a wall brick
-                    if b.brick_point_collide(mid_left):
-                        # bottom and mid collided, its a wall it takes priority
-                        collisions[Hotspots.bottom_left] = b
-                    elif b.angle == 0 and collisions[Hotspots.bottom_left].angle != 0:
-                        collisions[Hotspots.bottom_left] = b
-                        b.player_connected = True
-
-            if b.brick_point_collide(bottom_mid):
-                if collisions[Hotspots.bottom_mid] is None:
-                    collisions[Hotspots.bottom_mid] = b
-                    b.player_connected = True
-                else:
-                    if collisions[Hotspots.bottom_mid].angle == 0 and b.angle != 0: # slopes get priority
-                        collisions[Hotspots.bottom_mid] = b
-                        b.player_connected = True
-
-            if b.brick_point_collide(bottom_right):
-                if collisions[Hotspots.bottom_right] is None:  # its empty so lets store our brick
-                    collisions[Hotspots.bottom_right] = b
-                    b.player_connected = True
-                else:  # There is a brick if its angle and our brick is not angled, then that takes priority
-                    if b.brick_point_collide(mid_right):
-                        collisions[Hotspots.bottom_right] = b
-                        b.player_connected = True
-                    elif b.angle == 0 and collisions[Hotspots.bottom_right].angle != 0:
-                        collisions[Hotspots.bottom_right] = b
-                        b.player_connected = True
-
-            if b.brick_point_collide(top_mid):
+            if b.brick_point_collide(top_mid) and b.angle == 0:
                 collisions[Hotspots.top_mid] = b
+                b.player_connected = True
 
+            if b.brick_point_collide(bottom_mid):#and b.angle == 0:
+                collisions[Hotspots.bottom_mid] = b
+                b.player_connected = True
 
-        # handle the bricks now
+            if b.brick_point_collide(top_right) and b.angle == 0:
+                collisions[Hotspots.top_right] = b
+                b.player_connected = True
+
+            if b.brick_point_collide(top_left) and b.angle == 0:
+                collisions[Hotspots.top_left] = b
+                b.player_connected = True
+
         if collisions[Hotspots.top_mid] is not None:
-            self.handle_roof(collisions[Hotspots.top_mid], desired_position, new_velocity)
-        elif new_velocity.x > 0 and collisions[Hotspots.bottom_right] is not None:
-            if collisions[Hotspots.bottom_right].angle == 0:
-                self.handle_brick(collisions[Hotspots.bottom_right], desired_position, new_velocity)
-            else:
-                self.handle_slope(collisions[Hotspots.bottom_right], desired_position, new_velocity)
-        elif new_velocity.x < 0 and collisions[Hotspots.bottom_left] is not None:
-            if collisions[Hotspots.bottom_left].angle ==0:
-                self.handle_brick(collisions[Hotspots.bottom_left], desired_position, new_velocity)
-            else:
-                self.handle_slope(collisions[Hotspots.bottom_left], desired_position, new_velocity)
-        elif collisions[Hotspots.bottom_mid] is not None:
-            self.handle_brick(collisions[Hotspots.bottom_mid],desired_position,new_velocity)
+            desired_position.y = collisions[Hotspots.top_mid].y + collisions[Hotspots.top_mid].height + (self.half_height + 2)
+            self.is_jumping = False
+            self.on_floor = False
+            if new_velocity.y < 0:
+                new_velocity.y = 0
 
+        # if you are hitting a wall then stop
+        if collisions[Hotspots.top_right] is not None:
+            desired_position.x = collisions[Hotspots.top_right].x - 1 - self.half_width
+            if new_velocity.x > 0:
+                new_velocity.x = 0
+            #self.on_floor = True
+        elif collisions[Hotspots.top_left] is not None:
+            desired_position.x = collisions[Hotspots.top_left].x + collisions[Hotspots.top_left].width + 1 + self.half_width
+            if new_velocity.x < 0:
+                new_velocity.x = 0
+            #self.on_floor = True
+
+        # hitting a floor type
+        if collisions[Hotspots.bottom_mid] is not None:
+            if collisions[Hotspots.bottom_mid].angle != 0: # SLOPE
+                radians_angle = math.radians(collisions[Hotspots.bottom_mid].angle)
+                distance = round((desired_position.x - collisions[Hotspots.bottom_mid].x) * math.tan(radians_angle), 2)
+
+                if collisions[Hotspots.bottom_mid].angle > 0:
+                    y_feet_pos = collisions[Hotspots.bottom_mid].y + distance
+                else:
+                    y_feet_pos = collisions[Hotspots.bottom_mid].y + collisions[Hotspots.bottom_mid].height + distance
+
+                pos_y = y_feet_pos
+                if desired_position.y >= pos_y:
+                    desired_position.y = pos_y
+                    self.on_floor = True
+                    if new_velocity.y > 0:
+                        new_velocity.y = 0
+            else: # Normal FLOOR
+                desired_position.y = collisions[Hotspots.bottom_mid].y - 1 - self.half_height
+                self.on_floor = True
+                if new_velocity.y > 0:
+                    new_velocity.y = 0
+
+#            if b.brick_point_collide(bottom_left):
+#                if collisions[Hotspots.bottom_left] is None:  # its empty so lets store our brick
+#                    collisions[Hotspots.bottom_left] = b
+#                    b.player_connected = True
+#                else:  # There is a brick if its angle and our brick is not angled, then that takes priority
+#                    # check if this is a wall brick
+#                    if b.brick_point_collide(mid_left) and b.slope == 0:
+#                        # bottom and mid collided, its a wall it takes priority
+#                        collisions[Hotspots.bottom_left] = b
+#                        collisions[Hotspots.mid_left] = b
+#                        b.player_connected= True
+#                    elif b.angle == 0 and collisions[Hotspots.bottom_left].angle != 0 and collisions[Hotspots.mid_left] is None:
+#                        collisions[Hotspots.bottom_left] = b
+#                        b.player_connected = True
+#
+#            if b.brick_point_collide(bottom_mid):
+#                if collisions[Hotspots.bottom_mid] is None:
+#                    collisions[Hotspots.bottom_mid] = b
+#                    b.player_connected = True
+#                else:
+#                    if collisions[Hotspots.bottom_mid].angle == 0 and b.angle != 0: # slopes get priority
+#                        collisions[Hotspots.bottom_mid] = b
+#                        b.player_connected = True
+#
+#            if b.brick_point_collide(bottom_right):
+#                if collisions[Hotspots.bottom_right] is None:  # its empty so lets store our brick
+#                    collisions[Hotspots.bottom_right] = b
+#                    b.player_connected = True
+#                else:  # There is a brick if its angle and our brick is not angled, then that takes priority
+#                    if b.brick_point_collide(mid_right):
+#                        collisions[Hotspots.bottom_right] = b
+#                        b.player_connected = True
+#                    elif b.angle == 0 and collisions[Hotspots.bottom_right].angle != 0:
+#                        collisions[Hotspots.bottom_right] = b
+#                        b.player_connected = True
+
+#            if b.brick_point_collide(top_mid):
+#                collisions[Hotspots.top_mid] = b
+
+
+#        # handle the bricks now
+#        if collisions[Hotspots.top_mid] is not None and b.angle == 0:
+#            self.handle_roof(collisions[Hotspots.top_mid], desired_position, new_velocity)
+#        elif collisions[Hotspots.bottom_right] is not None:
+#            if collisions[Hotspots.bottom_right].angle == 0:
+#                self.handle_brick(collisions[Hotspots.bottom_right], desired_position, new_velocity)
+#            else:
+#                self.handle_slope(collisions[Hotspots.bottom_right], desired_position, new_velocity)
+#        elif collisions[Hotspots.bottom_left] is not None:
+#            if collisions[Hotspots.bottom_left].angle ==0:
+#                self.handle_brick(collisions[Hotspots.bottom_left], desired_position, new_velocity)
+#            else:
+#                self.handle_slope(collisions[Hotspots.bottom_left], desired_position, new_velocity)
+#        elif collisions[Hotspots.bottom_mid] is not None:
+#            self.handle_brick(collisions[Hotspots.bottom_mid],desired_position,new_velocity)
+#
 
 #            if b.brick_point_collide(bottom_left) or b.brick_point_collide(bottom_right): # our feet sensors hit something
 #                b.player_connected = True
@@ -308,11 +373,11 @@ class Player:
         if b.brick_point_collide(mid_right):
                 # we are hitting a wall on the right
                 new_velocity.x = 0
-                desired_position.x = b.get_pygame_rect()[0] - self.half_width - 2
+                desired_position.x = b.get_pygame_rect()[0] - self.half_width - 1
                 print("wall")
         elif b.brick_point_collide(mid_left):
                 new_velocity.x = 0
-                desired_position.x = b.get_pygame_rect()[0] + b.get_pygame_rect()[2] + self.half_width + 2
+                desired_position.x = b.get_pygame_rect()[0] + b.get_pygame_rect()[2] + self.half_width + 1
                 print("Wall")
         else:
             # we are on a floor do the floor routine

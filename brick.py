@@ -1,5 +1,5 @@
 import pygame
-
+import math
 
 class Brick:
     def __init__(self):
@@ -7,6 +7,8 @@ class Brick:
         self.p2 = pygame.Vector2()
         self.width = None
         self.height = None
+        self.x = None
+        self.y = None
         self.id = 0
         self.angle = 0
         self.collided = False
@@ -18,6 +20,8 @@ class Brick:
         self.p2.x, self.p2.y = p2[0], p2[1]
         self.width = self.p2.x - self.p1.x
         self.height = self.p2.y - self.p1.y
+        self.x = self.p1.x
+        self.y = self.p1.y
 
     def render(self, screen):
         # draw the brick, angled bricks are a line, all other bricks are just a filled rect.
@@ -28,10 +32,21 @@ class Brick:
         if self.angle % 90 == 0:
             pygame.draw.rect(screen, color, self.get_pygame_rect(), 0)
         elif self.angle != 0:
-            if self.angle == 45:
+            if self.angle == -45:
                 pygame.draw.line(screen, color, (self.p1.x, self.p2.y), (self.p2.x, self.p1.y), 1)
-            elif self.angle == 135:
-                pygame.draw.line(screen, color, (self.p1.x, self.p1.y), (self.p2.x, self.p2.y), 1)
+                length = math.sqrt(self.width * self.width + self.height * self.height)
+                nx = self.x + (length * math.cos(math.radians(self.angle)))
+                ny = self.y + self.width + (length * math.sin(math.radians(self.angle)))
+
+                pygame.draw.line(screen, (255, 0, 0), (self.x, self.y + self.height), (nx, ny), 1)
+                pygame.draw.rect(screen, (255, 255, 0), (self.x, self.y, self.width, self.height), 1)
+            elif self.angle == 45:
+                pygame.draw.line(screen, color, (self.x, self.y), (self.x + self.width, self.y + self.height), 1)
+                length = math.sqrt(self.width * self.width + self.height * self.height)
+                nx = self.x + (length * math.cos(math.radians(self.angle)))
+                ny = self.y + (length * math.sin(math.radians(self.angle)))
+                pygame.draw.line(screen, (255, 0, 0), (self.x, self.y), (nx, ny), 1)
+                pygame.draw.rect(screen, (255, 255, 0), (self.x, self.y, self.width, self.height), 1)
 
     def get_pygame_rect(self):
         # returns the pygame rect representing this brick
