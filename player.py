@@ -229,7 +229,7 @@ class Player:
                 new_velocity.y = 0
 
         # if you are hitting a wall then stop
-        if collisions[Hotspots.top_right] is not None:
+        elif collisions[Hotspots.top_right] is not None:
             desired_position.x = collisions[Hotspots.top_right].x - 1 - self.half_width
             if new_velocity.x > 0:
                 new_velocity.x = 0
@@ -242,22 +242,24 @@ class Player:
 
         # hitting a floor type
         if collisions[Hotspots.bottom_mid] is not None:
-            if collisions[Hotspots.bottom_mid].angle != 0: # SLOPE
+            # SLOPE
+            if collisions[Hotspots.bottom_mid].angle != 0:
                 radians_angle = math.radians(collisions[Hotspots.bottom_mid].angle)
                 distance = round((desired_position.x - collisions[Hotspots.bottom_mid].x) * math.tan(radians_angle), 2)
+                y_feet_pos = 0
 
-                if collisions[Hotspots.bottom_mid].angle > 0:
-                    y_feet_pos = collisions[Hotspots.bottom_mid].y + distance
-                else:
-                    y_feet_pos = collisions[Hotspots.bottom_mid].y + collisions[Hotspots.bottom_mid].height + distance
+                if 0 > collisions[Hotspots.bottom_mid].angle > -90:
+                    y_feet_pos = collisions[Hotspots.bottom_mid].y + collisions[Hotspots.bottom_mid].height + distance - self.half_height
+                if -90 > collisions[Hotspots.bottom_mid].angle > -180:
+                    y_feet_pos = collisions[Hotspots.bottom_mid].y + distance - self.half_height
 
-                pos_y = y_feet_pos
-                if desired_position.y >= pos_y:
-                    desired_position.y = pos_y
+                if desired_position.y >= y_feet_pos:
+                    desired_position.y = y_feet_pos
                     self.on_floor = True
                     if new_velocity.y > 0:
                         new_velocity.y = 0
-            else: # Normal FLOOR
+            else:
+            # Normal FLOOR1
                 desired_position.y = collisions[Hotspots.bottom_mid].y - 1 - self.half_height
                 self.on_floor = True
                 if new_velocity.y > 0:

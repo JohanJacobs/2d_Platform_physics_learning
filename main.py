@@ -17,28 +17,30 @@ def main():
 
     # floor bricks
     w.add_brick(w.get_new_brick_id(), (10, 790), (200, 800), 0)
-    w.add_brick(w.get_new_brick_id(), (201, 790), (400, 800), 0)
-    w.add_brick(w.get_new_brick_id(), (401, 790), (600, 800), 0)
-    w.add_brick(w.get_new_brick_id(), (601, 790), (800, 800), 0)
+    w.add_brick(w.get_new_brick_id(), (200, 790), (400, 800), 0)
+    w.add_brick(w.get_new_brick_id(), (400, 790), (600, 800), 0)
+    w.add_brick(w.get_new_brick_id(), (600, 790), (800, 800), 0)
     w.add_brick(w.get_new_brick_id(), (100, 400), (700, 410), 0)
     w.add_brick(w.get_new_brick_id(), (400, 350), (790, 360), 0)
-
 
     # wall brick
     w.add_brick(w.get_new_brick_id(), (0, 0), (10, 800), 0)  # left wall
     w.add_brick(w.get_new_brick_id(), (790, 0), (800, 800), 0)  # right wall
 
     # horizontal bricks
-    w.add_brick(w.get_new_brick_id(), (10, 700), (100, 710), 0)
     w.add_brick(w.get_new_brick_id(), (10, 500), (100, 510), 0)
     w.add_brick(w.get_new_brick_id(), (200, 600), (300, 610), 0)
     w.add_brick(w.get_new_brick_id(), (300, 600), (450, 610), 0)
     w.add_brick(w.get_new_brick_id(), (450, 600), (500, 610), 0)
+    w.add_brick(w.get_new_brick_id(), (10, 700), (100, 710), 0)
 
     # slanted bricks
-    w.add_brick(w.get_new_brick_id(), (700, 700), (790, 790), -45)
+
     w.add_brick(w.get_new_brick_id(), (450, 550), (500, 600), -45)
-    w.add_brick(w.get_new_brick_id(), (100, 700), (200, 790), 45)
+    w.add_brick(w.get_new_brick_id(), (700, 700), (790, 790), -45)
+    w.add_brick(w.get_new_brick_id(), (100, 700), (190, 790), -135)
+    w.add_brick(w.get_new_brick_id(), (500, 325), (550, 350), -30)
+    w.add_brick(w.get_new_brick_id(), (550, 325), (600, 350), -150)
 
     while running:
         for event in pygame.event.get():

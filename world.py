@@ -52,9 +52,8 @@ class World:
 
     def add_brick(self, id, p1, p2, angle = 0):
         new_brick = Brick()
-        new_brick.set_brick(p1, p2)
+        new_brick.set_brick(p1, p2, angle)
         new_brick.id = id
-        new_brick.angle = angle
         self.bricks.append(new_brick)
 
     def add_brick_slanted(self, id, p1, p2, angle):
