@@ -31,8 +31,6 @@ class Brick:
         self.cos_angle = round(math.cos(math.radians(self.angle)), 4)
         self.length = round(math.sqrt((self.width * self.width) + (self.height + self.height)),2)
 
-
-
     def render(self, screen):
         # draw the brick, angled bricks are a line, all other bricks are just a filled rect.
         color = (110, 102, 93)

@@ -125,7 +125,7 @@ class Player:
         textSurface = font.render(text, True, (255, 255, 255), (0, 0, 0))
         screen.blit(textSurface, (50, 110))
 
-    def update_physics(self, t, delta_time, bricks):
+    def update_physics(self, t, delta_time, bricks, particle_system):
         if self.is_jumping:
             # main jumping logic,
             # increase the jump counter, calculate for how much force to apply is based on the COS wave curve
@@ -233,11 +233,14 @@ class Player:
             desired_position.x = collisions[Hotspots.top_right].x - 1 - self.half_width
             if new_velocity.x > 0:
                 new_velocity.x = 0
+
             #self.on_floor = True
         elif collisions[Hotspots.top_left] is not None:
             desired_position.x = collisions[Hotspots.top_left].x + collisions[Hotspots.top_left].width + 1 + self.half_width
             if new_velocity.x < 0:
                 new_velocity.x = 0
+            self.add_particle(particle_system)
+            # some particles
             #self.on_floor = True
 
         # hitting a floor type
@@ -363,6 +366,17 @@ class Player:
         # reset acceleration
         self.accel.x = 0
         self.accel.y = 0
+
+    def add_particle(self,particle_system):
+        p = particle_system.create_struct()
+        p.x = self.position.x
+        p.y = self.position.y
+        p.color = 255
+        p.vx = 0
+        p.vy = -0.01
+        p.life_time = 2
+        p.fade_rate = -0.01
+        particle_system.add(p)
 
     def handle_brick(self, b, desired_position, new_velocity):
         # check if this is a wall (same brick will touch mid
