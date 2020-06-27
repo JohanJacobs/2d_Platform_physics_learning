@@ -48,11 +48,10 @@ class World:
             b.render(screen)
 
         self.player.render(screen, font)
-        self.particle_system.render(screen)
+
 
     def update_physics(self, t, dt):
-        self.player.update_physics(t, dt, self.bricks, self.particle_system)
-        self.particle_system.update_physics(dt)
+        self.player.update_physics(t, dt, self.bricks)
 
     def add_brick(self, id, p1, p2, angle = 0):
         new_brick = Brick()
